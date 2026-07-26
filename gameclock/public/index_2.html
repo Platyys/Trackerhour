@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameClock — votre temps de jeu, autrement</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%233987e5'/%3E%3Cpath d='M16 8v8l6 4' stroke='%23fff' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --border:         rgba(255,255,255,0.10);
+    --series-blue:    #3987e5;
+    --series-orange:  #d95926;
+    --series-aqua:    #199e70;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px;
+    text-align: center;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  .brand-name { font-size: 18px; font-weight: 700; }
+  .brand-logo { height: 40px; width: auto; }
+  h1 {
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+  }
+  h1 span { color: var(--series-blue); }
+  p.lead {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 36px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #171a21;
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: filter 0.15s ease;
+  }
+  .cta:hover { filter: brightness(1.15); }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 56px;
+    text-align: left;
+  }
+  .feature {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    background: var(--surface-1);
+  }
+  .feature h3 { font-size: 14px; margin: 0 0 6px 0; }
+  .feature p { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .error-note {
+    background: rgba(217,89,38,0.15);
+    border: 1px solid var(--series-orange);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  footer { margin-top: 60px; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <img src="/logo.png" alt="Hour Tracker" class="brand-logo">
+  </div>
+
+  <div id="error" style="display:none;" class="error-note">Connexion Steam annulée ou échouée. Réessayez.</div>
+
+  <h1>Votre temps de jeu, <span>en beaucoup plus fun.</span></h1>
+  <p class="lead">
+    Steam vous montre vos heures brutes. GameClock va plus loin : badges d'habitudes,
+    heatmap de vos sessions, ADN de joueur, et des comparaisons qui donnent le vertige
+    ("vous auriez pu traverser la France à pied 46 fois"). Connectez votre compte Steam,
+    c'est gratuit et ça prend 5 secondes.
+  </p>
+
+  <a class="cta" href="/login">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.979 0C5.678 0 0.511 4.86 0 11.037l6.447 2.66a3.39 3.39 0 0 1 1.921-.594c.064 0 .128.002.19.006l2.867-4.155v-.06c0-2.629 2.136-4.769 4.766-4.769 2.629 0 4.767 2.14 4.767 4.769 0 2.63-2.138 4.767-4.767 4.767h-.11l-4.09 2.923c0 .052.005.104.005.157 0 1.987-1.612 3.601-3.598 3.601-1.744 0-3.204-1.242-3.532-2.888L.878 15.61C1.947 20.492 6.53 24 11.979 24c6.628 0 11.982-5.373 11.982-12S18.607 0 11.979 0z" fill="#fff"/></svg>
+    Se connecter avec Steam
+  </a>
+
+  <div class="features">
+    <div class="feature">
+      <h3>🏅 Badges d'habitudes</h3>
+      <p>Oiseau de nuit, Marathonien, Monogame... calculés depuis vos vraies données.</p>
+    </div>
+    <div class="feature">
+      <h3>🗓️ Heatmap de sessions</h3>
+      <p>Voyez d'un coup d'œil quand vous jouez le plus, jour par jour, heure par heure.</p>
+    </div>
+    <div class="feature">
+      <h3>📈 Évolution réelle</h3>
+      <p>Chaque connexion enrichit votre historique — une vraie courbe se construit dans le temps.</p>
+    </div>
+    <div class="feature">
+      <h3>🎲 Comparaisons fun</h3>
+      <p>Vos heures cumulées traduites en tours du monde, marathons, traversées à pied...</p>
+    </div>
+  </div>
+
+  <footer>Connexion sécurisée via Steam (OpenID) — GameClock ne voit jamais votre mot de passe Steam.</footer>
+</div>
+<script>
+  if (new URLSearchParams(location.search).get('error')) {
+    document.getElementById('error').style.display = 'block';
+  }
+</script>
+</body>
+</html>

@@ -48,6 +48,7 @@
   }
   .brand-left { display: flex; align-items: center; gap: 8px; }
   .brand-name { font-size: 15px; font-weight: 700; }
+  .brand-logo { height: 26px; width: auto; }
   .logout-link { font-size: 12.5px; color: var(--text-muted); text-decoration: none; }
   .logout-link:hover { color: var(--text-primary); }
 
@@ -153,8 +154,7 @@
 
   <div class="brand">
     <div class="brand-left">
-      <svg width="22" height="22" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="var(--series-blue)"/><path d="M16 8v8l6 4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="brand-name">GameClock</span>
+      <img src="/logo.png" alt="Hour Tracker" class="brand-logo">
     </div>
     <a class="logout-link" href="/logout">Se déconnecter</a>
   </div>
@@ -184,8 +184,12 @@
   <div class="card">
     <h2 class="section-title">Heatmap de vos sessions</h2>
     <p class="section-sub">Répartition jour de la semaine × heure, d'après la dernière session de chaque jeu</p>
-    <div class="heatmap-wrap"><div class="heatmap-grid" id="heatmap"></div></div>
-    <div class="heatmap-legend">
+    <p id="heatmap-unavailable" class="section-sub" style="display:none;">
+      Steam ne fournit pas les horodatages de session pour ce compte (ça arrive sur
+      certains comptes plus anciens) — impossible d'afficher la heatmap pour l'instant.
+    </p>
+    <div class="heatmap-wrap" id="heatmap-wrap"><div class="heatmap-grid" id="heatmap"></div></div>
+    <div class="heatmap-legend" id="heatmap-legend">
       <span>Moins</span>
       <span class="sw" style="background:var(--gridline);"></span>
       <span class="sw" style="background:rgba(57,135,229,0.35);"></span>
@@ -369,7 +373,22 @@ function renderBadges(games, played, daysSince, totalHours, recentGames) {
 // ---- Heatmap (day of week x hour of day, from rtime_last_played) ----
 function renderHeatmap(games) {
   const grid = document.getElementById('heatmap');
+  const wrap = document.getElementById('heatmap-wrap');
+  const legend = document.getElementById('heatmap-legend');
+  const unavailableMsg = document.getElementById('heatmap-unavailable');
   grid.innerHTML = '';
+
+  const hasAnyTimestamp = games.some(g => g.rtime_last_played);
+  if (!hasAnyTimestamp) {
+    wrap.style.display = 'none';
+    legend.style.display = 'none';
+    unavailableMsg.style.display = '';
+    return;
+  }
+  wrap.style.display = '';
+  legend.style.display = '';
+  unavailableMsg.style.display = 'none';
+
   const counts = Array.from({length:7}, () => Array(24).fill(0));
   games.forEach(g => {
     if (!g.rtime_last_played) return;
