@@ -197,6 +197,43 @@
       </div>
 
       <div class="card">
+        <h2 class="section-title">Fortnite</h2>
+        <p class="section-sub">Stats récupérées automatiquement via votre pseudo Epic (aucune connexion requise)</p>
+        <div id="fortnite-link-form">
+          <form id="fortnite-link-form-el" class="manual-form">
+            <input id="fortnite-name-input" type="text" placeholder="Pseudo Epic (ex : Ninja)" required>
+            <button type="submit">Lier mon compte</button>
+          </form>
+        </div>
+        <div id="fortnite-stats" style="display:none;"></div>
+        <p id="fortnite-error" class="never-played-note" style="display:none;"></p>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">League of Legends</h2>
+        <p class="section-sub">Stats récupérées automatiquement via votre Riot ID (aucune connexion requise)</p>
+        <div id="lol-link-form">
+          <form id="lol-link-form-el" class="manual-form">
+            <input id="lol-gamename-input" type="text" placeholder="Nom (ex : Faker)" required>
+            <input id="lol-tagline-input" type="text" placeholder="Tag (ex : KR1)" required style="width:100px;">
+            <select id="lol-region-input">
+              <option value="euw1">Europe de l'Ouest (EUW)</option>
+              <option value="eun1">Europe de l'Est (EUNE)</option>
+              <option value="na1">Amérique du Nord (NA)</option>
+              <option value="br1">Brésil (BR)</option>
+              <option value="tr1">Turquie (TR)</option>
+              <option value="ru">Russie (RU)</option>
+              <option value="kr">Corée (KR)</option>
+              <option value="jp1">Japon (JP)</option>
+            </select>
+            <button type="submit">Lier mon compte</button>
+          </form>
+        </div>
+        <div id="lol-stats" style="display:none;"></div>
+        <p id="lol-error" class="never-played-note" style="display:none;"></p>
+      </div>
+
+      <div class="card">
         <h2 class="section-title">Autres launchers (saisie manuelle)</h2>
         <p class="section-sub">Epic Games, EA App, Ubisoft Connect, GOG… n'ont pas d'API publique. Vos entrées sont sauvegardées sur votre compte.</p>
         <form id="manual-form" class="manual-form">
@@ -315,7 +352,147 @@ function render(data, manualEntries) {
   renderManual(manualEntries);
   renderFunComparisons(totalHours);
   renderEvolution(history, games);
+  loadLinks();
 }
+
+// ---- Fortnite & League of Legends (linked accounts) ----
+async function loadLinks() {
+  let links = {};
+  try {
+    const resp = await fetch('/api/links', { credentials: 'same-origin' });
+    if (resp.ok) links = await resp.json();
+  } catch (e) { /* ignore, forms stay visible */ }
+
+  if (links.fortniteName) {
+    document.getElementById('fortnite-link-form').style.display = 'none';
+    loadFortnite(false);
+  } else {
+    document.getElementById('fortnite-link-form').style.display = '';
+    document.getElementById('fortnite-stats').style.display = 'none';
+  }
+
+  if (links.riotGameName && links.riotTagLine && links.riotRegion) {
+    document.getElementById('lol-link-form').style.display = 'none';
+    loadLoL(false);
+  } else {
+    document.getElementById('lol-link-form').style.display = '';
+    document.getElementById('lol-stats').style.display = 'none';
+  }
+}
+
+async function loadFortnite(force) {
+  const statsEl = document.getElementById('fortnite-stats');
+  const errEl = document.getElementById('fortnite-error');
+  errEl.style.display = 'none';
+  statsEl.style.display = '';
+  statsEl.innerHTML = '<p class="never-played-note">Chargement…</p>';
+  try {
+    const resp = await fetch('/api/fortnite' + (force ? '?force=1' : ''), { credentials: 'same-origin' });
+    const data = await resp.json();
+    if (!data.linked) {
+      statsEl.style.display = 'none';
+      document.getElementById('fortnite-link-form').style.display = '';
+      return;
+    }
+    if (data.error) {
+      statsEl.style.display = 'none';
+      errEl.textContent = data.error === 'not_found'
+        ? 'Pseudo Epic introuvable. Vérifiez l\'orthographe exacte de votre pseudo Fortnite.'
+        : "Impossible de récupérer vos stats Fortnite pour l'instant.";
+      errEl.style.display = '';
+      return;
+    }
+    const s = data.stats;
+    const hoursPlayed = Math.round((s.minutesPlayed || 0) / 6) / 10;
+    statsEl.innerHTML = `
+      <p class="section-sub">${s.displayName}</p>
+      <div class="stat-row">
+        <div class="stat-tile"><div class="label">Victoires</div><div class="value">${s.wins}</div><div class="sub">${s.matches} parties · ${s.winRate}% winrate</div></div>
+        <div class="stat-tile"><div class="label">Éliminations</div><div class="value">${s.kills}</div><div class="sub">K/D ${s.kd}</div></div>
+        <div class="stat-tile"><div class="label">Temps de jeu</div><div class="value">${fmtHours(hoursPlayed)} h</div><div class="sub">à vie</div></div>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button class="ghost-btn" id="fortnite-refresh-btn">Actualiser</button>
+        <button class="ghost-btn" id="fortnite-unlink-btn" style="background:none; color:var(--text-muted);">Changer de pseudo</button>
+      </div>`;
+    document.getElementById('fortnite-refresh-btn').addEventListener('click', () => loadFortnite(true));
+    document.getElementById('fortnite-unlink-btn').addEventListener('click', async () => {
+      await fetch('/api/links', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ fortniteName: null }) });
+      statsEl.style.display = 'none';
+      document.getElementById('fortnite-link-form').style.display = '';
+    });
+  } catch (e) {
+    statsEl.style.display = 'none';
+    errEl.textContent = "Impossible de récupérer vos stats Fortnite pour l'instant.";
+    errEl.style.display = '';
+  }
+}
+
+document.getElementById('fortnite-link-form-el').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('fortnite-name-input').value.trim();
+  if (!name) return;
+  await fetch('/api/links', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ fortniteName: name }) });
+  document.getElementById('fortnite-link-form').style.display = 'none';
+  loadFortnite(true);
+});
+
+async function loadLoL(force) {
+  const statsEl = document.getElementById('lol-stats');
+  const errEl = document.getElementById('lol-error');
+  errEl.style.display = 'none';
+  statsEl.style.display = '';
+  statsEl.innerHTML = '<p class="never-played-note">Chargement…</p>';
+  try {
+    const resp = await fetch('/api/lol' + (force ? '?force=1' : ''), { credentials: 'same-origin' });
+    const data = await resp.json();
+    if (!data.linked) {
+      statsEl.style.display = 'none';
+      document.getElementById('lol-link-form').style.display = '';
+      return;
+    }
+    if (data.error) {
+      statsEl.style.display = 'none';
+      errEl.textContent = data.error === 'not_found'
+        ? 'Riot ID introuvable — vérifiez le nom, le tag et la région.'
+        : "Impossible de récupérer vos stats League of Legends pour l'instant.";
+      errEl.style.display = '';
+      return;
+    }
+    const s = data.stats;
+    const ranksHtml = s.ranks.length
+      ? s.ranks.map(r => `<div class="stat-tile"><div class="label">${r.queue}</div><div class="value">${r.tier} ${r.rank}</div><div class="sub">${r.leaguePoints} LP · ${r.wins}V / ${r.losses}D (${r.winRate}%)</div></div>`).join('')
+      : '<div class="stat-tile"><div class="label">Classement</div><div class="value">Non classé</div></div>';
+    statsEl.innerHTML = `
+      <p class="section-sub">${s.gameName}#${s.tagLine} · Niveau ${s.summonerLevel}</p>
+      <div class="stat-row">${ranksHtml}</div>
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button class="ghost-btn" id="lol-refresh-btn">Actualiser</button>
+        <button class="ghost-btn" id="lol-unlink-btn" style="background:none; color:var(--text-muted);">Changer de compte</button>
+      </div>`;
+    document.getElementById('lol-refresh-btn').addEventListener('click', () => loadLoL(true));
+    document.getElementById('lol-unlink-btn').addEventListener('click', async () => {
+      await fetch('/api/links', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ riotGameName: null, riotTagLine: null, riotRegion: null }) });
+      statsEl.style.display = 'none';
+      document.getElementById('lol-link-form').style.display = '';
+    });
+  } catch (e) {
+    statsEl.style.display = 'none';
+    errEl.textContent = "Impossible de récupérer vos stats League of Legends pour l'instant.";
+    errEl.style.display = '';
+  }
+}
+
+document.getElementById('lol-link-form-el').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const gameName = document.getElementById('lol-gamename-input').value.trim();
+  const tagLine = document.getElementById('lol-tagline-input').value.trim();
+  const region = document.getElementById('lol-region-input').value;
+  if (!gameName || !tagLine) return;
+  await fetch('/api/links', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ riotGameName: gameName, riotTagLine: tagLine, riotRegion: region }) });
+  document.getElementById('lol-link-form').style.display = 'none';
+  loadLoL(true);
+});
 
 // ---- Badges ----
 function renderBadges(games, played, daysSince, totalHours, recentGames) {
