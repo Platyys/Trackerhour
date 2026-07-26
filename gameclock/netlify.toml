@@ -28,3 +28,21 @@
   to = "/.netlify/functions/api-manual"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/links"
+  to = "/.netlify/functions/api-links"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/fortnite"
+  to = "/.netlify/functions/api-fortnite"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/lol"
+  to = "/.netlify/functions/api-lol"
+  status = 200
+  force = true
