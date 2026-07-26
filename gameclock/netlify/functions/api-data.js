@@ -1,5 +1,4 @@
-const { getStore } = require('@netlify/blobs');
-const { parseCookies, verify } = require('./lib/session');
+const { getBlobStore } = require('./lib/blobs');const { parseCookies, verify } = require('./lib/session');
 const { fetchSteamData } = require('./lib/steam');
 
 exports.handler = async (event) => {
@@ -15,8 +14,7 @@ exports.handler = async (event) => {
   }
 
   const steamid = session.steamid;
-  const store = getStore('snapshots');
-  const key = `${steamid}.json`;
+const store = getBlobStore('snapshots');  const key = `${steamid}.json`;
 
   let history = [];
   try {
