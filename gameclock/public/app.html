@@ -459,8 +459,18 @@ function renderFunComparisons(totalHours) {
     { label: 'Faire le tour du monde en avion de ligne', detail: 'à 900 km/h', unit: 40075/900 },
     { label: 'Dormir une nuit complète', detail: '8h par nuit', unit: 8 },
     { label: 'Courir un marathon', detail: '4h30 en moyenne', unit: 4.5 },
-    { label: 'Regarder toute la saga Star Wars', detail: 'les 9 films, 22h', unit: 22 },
+    { label: 'Regarder toute la saga Star Wars', detail: 'films principaux + spin-offs cinéma, ≈25h', unit: 25 },
     { label: 'Parcourir à pied toutes les routes de la carte de GTA V', detail: '≈ 80 km à 5 km/h', unit: 16 },
+    { label: "Miner un bloc d'obsidienne dans Minecraft", detail: '9 secondes par bloc', unit: 9/3600 },
+    { label: 'Fabriquer un portail du Nether', detail: '10 blocs d\'obsidienne, 1 min 30 s', unit: 90/3600 },
+    { label: 'Regarder toute la saga Harry Potter', detail: '8 films, 19h39', unit: 19 + 39/60 },
+    { label: 'Regarder One Piece', detail: '≈500h selon le nombre d\'épisodes', unit: 500 },
+    { label: 'Regarder Naruto + Shippuden', detail: '≈300h', unit: 300 },
+    { label: 'Revoir l\'intégrale Pokémon (anime)', detail: '≈530h', unit: 530 },
+    { label: 'Prendre une douche', detail: '10 minutes', unit: 10/60 },
+    { label: 'Lire le dictionnaire', detail: 'Le Robert ou Larousse, ≈120h', unit: 120 },
+    { label: 'Voyager du Soleil à la Terre', detail: 'à 900 km/h, ≈18 ans et 11 mois', unit: 165823.5 },
+    { label: 'Voyager de la Terre à la Lune', detail: 'à 900 km/h, ≈18 jours', unit: 432 },
   ];
   container.innerHTML = '';
   items.forEach(it => {
