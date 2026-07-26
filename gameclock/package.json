@@ -1,0 +1,9 @@
+{
+  "name": "gameclock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GameClock - suivez votre temps de jeu Steam, badges, heatmap et comparaisons fun",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

@@ -1,0 +1,30 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/login"
+  to = "/.netlify/functions/auth-steam-login"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/logout"
+  to = "/.netlify/functions/auth-logout"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/api/data"
+  to = "/.netlify/functions/api-data"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/manual"
+  to = "/.netlify/functions/api-manual"
+  status = 200
+  force = true
