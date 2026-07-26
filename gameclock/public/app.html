@@ -104,7 +104,7 @@
   .hbar-track { flex: 1; background: var(--gridline); border-radius: 4px; height: 18px; position: relative; }
   .hbar-fill { height: 100%; border-radius: 0 4px 4px 0; position: relative; transition: filter 0.15s ease; }
   .hbar-fill:hover { filter: brightness(1.08); cursor: pointer; }
-  .hbar-value { position: absolute; right: -6px; top: 50%; transform: translate(100%, -50%); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .hbar-value { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6); pointer-events: none; }
 
   .vbar-chart { display: flex; align-items: flex-end; gap: 4px; height: 160px; border-bottom: 1px solid var(--baseline); padding-top: 8px; }
   .vbar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
@@ -375,12 +375,12 @@ function renderTopGames(games) {
   top15.forEach(g => {
     const row = document.createElement('div');
     row.className = 'hbar-row';
-    const pct = (g.hours / maxVal) * 100;
+    const pct = (g.hours / maxVal) * 85;
     row.innerHTML = `
       <div class="hbar-label" title="${g.name}">${g.name}</div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%; background:var(--series-blue);">
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%; background:var(--series-blue);"></div>
         <div class="hbar-value">${fmtHours(g.hours)} h</div>
-      </div></div>`;
+      </div>`;
     const fill = row.querySelector('.hbar-fill');
     fill.addEventListener('mousemove', e => showTooltip(e, `${g.name}: ${fmtHours(g.hours)} h`));
     fill.addEventListener('mouseleave', hideTooltip);
@@ -405,12 +405,12 @@ function renderRecent(recentGames) {
   list.forEach(g => {
     const row = document.createElement('div');
     row.className = 'hbar-row';
-    const pct = (g.hours2w / maxVal) * 100;
+    const pct = (g.hours2w / maxVal) * 85;
     row.innerHTML = `
       <div class="hbar-label" title="${g.name}">${g.name}</div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%; background:var(--series-orange);">
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%; background:var(--series-orange);"></div>
         <div class="hbar-value">${g.hours2w} h · ${g.last}</div>
-      </div></div>`;
+      </div>`;
     const fill = row.querySelector('.hbar-fill');
     fill.addEventListener('mousemove', e => showTooltip(e, `${g.name}: ${g.hours2w} h (dernière session ${g.last})`));
     fill.addEventListener('mouseleave', hideTooltip);
@@ -457,12 +457,10 @@ function renderFunComparisons(totalHours) {
     { label: 'Traverser la France à pied', detail: 'Lille → Marseille, 1 050 km à 5 km/h', unit: 1050/5 },
     { label: 'Faire le tour de la Terre à pied', detail: "à l'équateur, 40 075 km à 5 km/h", unit: 40075/5 },
     { label: 'Faire le tour du monde en avion de ligne', detail: 'à 900 km/h', unit: 40075/900 },
-    { label: 'Dormir une nuit complète', detail: '8h par nuit', unit: 8 },
     { label: 'Courir un marathon', detail: '4h30 en moyenne', unit: 4.5 },
     { label: 'Regarder toute la saga Star Wars', detail: 'films principaux + spin-offs cinéma, ≈25h', unit: 25 },
     { label: 'Parcourir à pied toutes les routes de la carte de GTA V', detail: '≈ 80 km à 5 km/h', unit: 16 },
     { label: "Miner un bloc d'obsidienne dans Minecraft", detail: '9 secondes par bloc', unit: 9/3600 },
-    { label: 'Fabriquer un portail du Nether', detail: '10 blocs d\'obsidienne, 1 min 30 s', unit: 90/3600 },
     { label: 'Regarder toute la saga Harry Potter', detail: '8 films, 19h39', unit: 19 + 39/60 },
     { label: 'Regarder One Piece', detail: '≈500h selon le nombre d\'épisodes', unit: 500 },
     { label: 'Regarder Naruto + Shippuden', detail: '≈300h', unit: 300 },
