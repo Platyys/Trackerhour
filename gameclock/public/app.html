@@ -30,7 +30,21 @@
     color: var(--text-primary);
   }
   body { padding: 24px; }
-  .wrap { max-width: 980px; margin: 0 auto; }
+  .wrap { max-width: 1360px; margin: 0 auto; }
+
+  .page-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 260px;
+    gap: 20px;
+    align-items: start;
+  }
+  .col-left, .col-right { display: flex; flex-direction: column; gap: 14px; }
+  .col-main { min-width: 0; }
+  @media (max-width: 1050px) {
+    .page-grid { grid-template-columns: 1fr; }
+    .col-left { flex-direction: row; flex-wrap: wrap; }
+    .col-left .stat-tile { flex: 1 1 150px; }
+  }
 
   .card {
     background: var(--surface-1);
@@ -137,14 +151,6 @@
   .badge-tile .badge-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
   .badge-empty { font-size: 12.5px; color: var(--text-muted); font-style: italic; }
 
-  .heatmap-wrap { overflow-x: auto; }
-  .heatmap-grid { display: grid; grid-template-columns: 34px repeat(24, 1fr); gap: 2px; min-width: 640px; }
-  .heatmap-hour-label { font-size: 9px; color: var(--text-muted); text-align: center; }
-  .heatmap-day-label { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; }
-  .heatmap-cell { aspect-ratio: 1; border-radius: 2px; background: var(--gridline); }
-  .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
-  .heatmap-legend .sw { width: 12px; height: 12px; border-radius: 2px; }
-
   footer.page-footer { font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px 0 4px 0; }
   .loading { text-align: center; padding: 80px 0; color: var(--text-muted); }
 </style>
@@ -159,91 +165,81 @@
     <a class="logout-link" href="/logout">Se déconnecter</a>
   </div>
 
-  <header class="card">
-    <img class="avatar" id="p-avatar" src="" alt="avatar" onerror="this.style.display='none'">
-    <div class="who">
-      <h1 id="p-name">—</h1>
-      <div class="meta" id="p-meta">—</div>
+  <div class="page-grid">
+
+    <div class="col-left">
+      <div class="stat-tile"><div class="label">Temps de jeu total</div><div class="value" id="s-total-hours">—</div><div class="sub" id="s-total-days">—</div></div>
+      <div class="stat-tile"><div class="label">Jeux possédés</div><div class="value" id="s-game-count">—</div><div class="sub" id="s-played-sub">—</div></div>
+      <div class="stat-tile"><div class="label">Ces 2 dernières semaines</div><div class="value" id="s-hours-2w">—</div><div class="sub" id="s-recent-sub">—</div></div>
+      <div class="stat-tile"><div class="label">Moyenne / jour</div><div class="value" id="s-avg-hours">—</div><div class="sub">depuis la création du compte</div></div>
     </div>
-    <button class="refresh-btn" id="refresh-btn">Actualiser</button>
-  </header>
 
-  <div class="stat-row" style="margin-bottom:20px;">
-    <div class="stat-tile"><div class="label">Temps de jeu total</div><div class="value" id="s-total-hours">—</div><div class="sub" id="s-total-days">—</div></div>
-    <div class="stat-tile"><div class="label">Jeux possédés</div><div class="value" id="s-game-count">—</div><div class="sub" id="s-played-sub">—</div></div>
-    <div class="stat-tile"><div class="label">Ces 2 dernières semaines</div><div class="value" id="s-hours-2w">—</div><div class="sub" id="s-recent-sub">—</div></div>
-    <div class="stat-tile"><div class="label">Moyenne / jour</div><div class="value" id="s-avg-hours">—</div><div class="sub">depuis la création du compte</div></div>
-  </div>
+    <div class="col-main">
+      <header class="card">
+        <img class="avatar" id="p-avatar" src="" alt="avatar" onerror="this.style.display='none'">
+        <div class="who">
+          <h1 id="p-name">—</h1>
+          <div class="meta" id="p-meta">—</div>
+        </div>
+        <button class="refresh-btn" id="refresh-btn">Actualiser</button>
+      </header>
 
-  <div class="card">
-    <h2 class="section-title">Badges d'habitudes</h2>
-    <p class="section-sub">Calculés à partir de vos vraies données de jeu</p>
-    <div class="badge-grid" id="badges"></div>
-  </div>
+      <div class="card">
+        <h2 class="section-title">Top 15 des jeux les plus joués</h2>
+        <p class="section-sub">Temps de jeu total (heures), toutes plateformes Steam confondues</p>
+        <div id="top-games-chart"></div>
+      </div>
 
-  <div class="card">
-    <h2 class="section-title">Heatmap de vos sessions</h2>
-    <p class="section-sub">Répartition jour de la semaine × heure, d'après la dernière session de chaque jeu</p>
-    <p id="heatmap-unavailable" class="section-sub" style="display:none;">
-      Steam ne fournit pas les horodatages de session pour ce compte (ça arrive sur
-      certains comptes plus anciens) — impossible d'afficher la heatmap pour l'instant.
-    </p>
-    <div class="heatmap-wrap" id="heatmap-wrap"><div class="heatmap-grid" id="heatmap"></div></div>
-    <div class="heatmap-legend" id="heatmap-legend">
-      <span>Moins</span>
-      <span class="sw" style="background:var(--gridline);"></span>
-      <span class="sw" style="background:rgba(57,135,229,0.35);"></span>
-      <span class="sw" style="background:rgba(57,135,229,0.65);"></span>
-      <span class="sw" style="background:rgba(57,135,229,1);"></span>
-      <span>Plus</span>
+      <div class="card">
+        <h2 class="section-title">Activité des 2 dernières semaines</h2>
+        <p class="section-sub">Jeux lancés récemment, temps joué et date de dernière session</p>
+        <div id="recent-chart"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Autres launchers (saisie manuelle)</h2>
+        <p class="section-sub">Epic Games, EA App, Ubisoft Connect, GOG… n'ont pas d'API publique. Vos entrées sont sauvegardées sur votre compte.</p>
+        <form id="manual-form" class="manual-form">
+          <select id="manual-platform" required>
+            <option value="Epic Games">Epic Games</option>
+            <option value="EA App">EA App</option>
+            <option value="Ubisoft Connect">Ubisoft Connect</option>
+            <option value="GOG">GOG</option>
+            <option value="Autre">Autre</option>
+          </select>
+          <input id="manual-game" type="text" placeholder="Nom du jeu" required>
+          <input id="manual-hours" type="number" step="0.1" min="0" placeholder="Heures" required>
+          <button type="submit">Ajouter</button>
+        </form>
+        <div id="manual-list" class="manual-list"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title" id="fun-title">Vos heures cumulées, autrement</h2>
+        <p class="section-sub">Avec le temps total joué, qu'auriez-vous pu faire d'autre ? (estimations pour le fun)</p>
+        <div class="fun-grid" id="fun-comparisons"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title" id="evolution-title">Évolution de l'activité</h2>
+        <p class="section-sub" id="evolution-sub"></p>
+        <div class="vbar-chart" id="monthly-chart"></div>
+        <div class="vbar-labels" id="monthly-labels"></div>
+        <p class="never-played-note">Note : l'API Steam ne fournit pas d'historique heure par heure au-delà de 2 semaines. Ce graphique se construit à partir des dates de dernière session, et deviendra un vrai historique jour après jour à chaque connexion.</p>
+      </div>
+
+      <footer class="page-footer" id="page-footer">Données Steam Web API</footer>
     </div>
-  </div>
 
-  <div class="card">
-    <h2 class="section-title">Top 15 des jeux les plus joués</h2>
-    <p class="section-sub">Temps de jeu total (heures), toutes plateformes Steam confondues</p>
-    <div id="top-games-chart"></div>
-  </div>
+    <div class="col-right">
+      <div class="card">
+        <h2 class="section-title">Badges d'habitudes</h2>
+        <p class="section-sub">Calculés à partir de vos vraies données de jeu</p>
+        <div class="badge-grid" id="badges"></div>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2 class="section-title">Activité des 2 dernières semaines</h2>
-    <p class="section-sub">Jeux lancés récemment, temps joué et date de dernière session</p>
-    <div id="recent-chart"></div>
   </div>
-
-  <div class="card">
-    <h2 class="section-title">Autres launchers (saisie manuelle)</h2>
-    <p class="section-sub">Epic Games, EA App, Ubisoft Connect, GOG… n'ont pas d'API publique. Vos entrées sont sauvegardées sur votre compte.</p>
-    <form id="manual-form" class="manual-form">
-      <select id="manual-platform" required>
-        <option value="Epic Games">Epic Games</option>
-        <option value="EA App">EA App</option>
-        <option value="Ubisoft Connect">Ubisoft Connect</option>
-        <option value="GOG">GOG</option>
-        <option value="Autre">Autre</option>
-      </select>
-      <input id="manual-game" type="text" placeholder="Nom du jeu" required>
-      <input id="manual-hours" type="number" step="0.1" min="0" placeholder="Heures" required>
-      <button type="submit">Ajouter</button>
-    </form>
-    <div id="manual-list" class="manual-list"></div>
-  </div>
-
-  <div class="card">
-    <h2 class="section-title" id="fun-title">Vos heures cumulées, autrement</h2>
-    <p class="section-sub">Avec le temps total joué, qu'auriez-vous pu faire d'autre ? (estimations pour le fun)</p>
-    <div class="fun-grid" id="fun-comparisons"></div>
-  </div>
-
-  <div class="card">
-    <h2 class="section-title" id="evolution-title">Évolution de l'activité</h2>
-    <p class="section-sub" id="evolution-sub"></p>
-    <div class="vbar-chart" id="monthly-chart"></div>
-    <div class="vbar-labels" id="monthly-labels"></div>
-    <p class="never-played-note">Note : l'API Steam ne fournit pas d'historique heure par heure au-delà de 2 semaines. Ce graphique se construit à partir des dates de dernière session, et deviendra un vrai historique jour après jour à chaque connexion.</p>
-  </div>
-
-  <footer class="page-footer" id="page-footer">Données Steam Web API</footer>
 </div>
 
 <div class="loading" id="loading">Chargement de vos données…</div>
@@ -314,7 +310,6 @@ function render(data, manualEntries) {
   document.getElementById('page-footer').textContent = `Données Steam Web API · dernier snapshot ${latest.date}`;
 
   renderBadges(games, played, daysSince, totalHours, recentGames);
-  renderHeatmap(games);
   renderTopGames(games);
   renderRecent(recentGames);
   renderManual(manualEntries);
@@ -368,60 +363,6 @@ function renderBadges(games, played, daysSince, totalHours, recentGames) {
     el.innerHTML = `<div class="badge-icon">${b.icon}</div><div><div class="badge-name">${b.name}</div><div class="badge-desc">${b.desc}</div></div>`;
     container.appendChild(el);
   });
-}
-
-// ---- Heatmap (day of week x hour of day, from rtime_last_played) ----
-function renderHeatmap(games) {
-  const grid = document.getElementById('heatmap');
-  const wrap = document.getElementById('heatmap-wrap');
-  const legend = document.getElementById('heatmap-legend');
-  const unavailableMsg = document.getElementById('heatmap-unavailable');
-  grid.innerHTML = '';
-
-  const hasAnyTimestamp = games.some(g => g.rtime_last_played);
-  if (!hasAnyTimestamp) {
-    wrap.style.display = 'none';
-    legend.style.display = 'none';
-    unavailableMsg.style.display = '';
-    return;
-  }
-  wrap.style.display = '';
-  legend.style.display = '';
-  unavailableMsg.style.display = 'none';
-
-  const counts = Array.from({length:7}, () => Array(24).fill(0));
-  games.forEach(g => {
-    if (!g.rtime_last_played) return;
-    const d = new Date(g.rtime_last_played * 1000);
-    counts[d.getUTCDay()][d.getUTCHours()]++;
-  });
-  const maxCount = Math.max(1, ...counts.flat());
-  const dayLabels = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-
-  grid.appendChild(document.createElement('div')); // corner spacer
-  for (let h = 0; h < 24; h++) {
-    const lbl = document.createElement('div');
-    lbl.className = 'heatmap-hour-label';
-    lbl.textContent = h % 3 === 0 ? h : '';
-    grid.appendChild(lbl);
-  }
-  for (let d = 0; d < 7; d++) {
-    const dayLbl = document.createElement('div');
-    dayLbl.className = 'heatmap-day-label';
-    dayLbl.textContent = dayLabels[d];
-    grid.appendChild(dayLbl);
-    for (let h = 0; h < 24; h++) {
-      const cell = document.createElement('div');
-      cell.className = 'heatmap-cell';
-      const v = counts[d][h] / maxCount;
-      if (v > 0) cell.style.background = `rgba(57,135,229,${0.15 + v*0.85})`;
-      if (counts[d][h] > 0) {
-        cell.addEventListener('mousemove', e => showTooltip(e, `${dayLabels[d]} ${h}h : ${counts[d][h]} jeu(x)`));
-        cell.addEventListener('mouseleave', hideTooltip);
-      }
-      grid.appendChild(cell);
-    }
-  }
 }
 
 // ---- Top games ----
